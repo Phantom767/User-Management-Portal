@@ -1,0 +1,7 @@
+﻿@model UserManagementPortal.Core.Dtos.LoginDto
+<form asp-action="Login" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input asp-for="Email" type="email" />
+    <input asp-for="Password" type="password" />
+    <button type="submit">Sign In</button>
+</form>
