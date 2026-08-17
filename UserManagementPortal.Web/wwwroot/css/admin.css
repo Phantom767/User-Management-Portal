@@ -1,0 +1,6 @@
+﻿.toolbar .btn i { font-size: .95rem; }
+#usersTable tbody tr td:nth-child(2),
+#usersTable tbody tr td:nth-child(3) { text-align: left; }
+#usersTable tbody tr td:nth-child(4),
+#usersTable tbody tr td:nth-child(5) { text-align: center; }
+.badge { font-weight: 500; min-width: 80px; }
