@@ -1,0 +1,91 @@
+﻿@model List<UserManagementPortal.Core.Dtos.UserListItemDto>
+@{
+    ViewData["Title"] = "User management";
+}
+
+<link rel="stylesheet" href="~/css/admin.css" />
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">User management</h4>
+    <input type="text" id="filterInput" class="form-control form-control-sm w-auto"
+           placeholder="Filter..." autocomplete="off" />
+</div>
+
+<div id="statusMessage" class="alert d-none" role="alert"></div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+
+        <!-- Toolbar -->
+        <div class="toolbar d-flex align-items-center gap-2 p-2 border-bottom">
+            <button type="button" id="btnBlock" class="btn btn-outline-primary btn-sm" disabled>
+                <i class="bi bi-lock-fill me-1"></i>Block
+            </button>
+            <button type="button" id="btnUnblock" class="btn btn-outline-secondary btn-sm" disabled
+                    data-bs-toggle="tooltip" title="Unblock selected">
+                <i class="bi bi-unlock-fill"></i>
+            </button>
+            <button type="button" id="btnDelete" class="btn btn-outline-danger btn-sm" disabled
+                    data-bs-toggle="tooltip" title="Delete selected">
+                <i class="bi bi-trash-fill"></i>
+            </button>
+            <button type="button" id="btnDeleteUnverified" class="btn btn-outline-warning btn-sm" disabled
+                    data-bs-toggle="tooltip" title="Delete unverified (from selected)">
+                <i class="bi bi-person-x-fill"></i>
+            </button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="usersTable">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 40px;">
+                            <input type="checkbox" class="form-check-input" id="selectAll" aria-label="Select all" />
+                        </th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Last seen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var u in Model)
+                    {
+                        var badgeClass = u.Status switch
+                        {
+                            "Active" => "text-bg-success",
+                            "Blocked" => "text-bg-secondary",
+                            _ => "text-bg-warning"
+                        };
+                        <tr data-id="@u.Id" data-name="@u.Name.ToLower()" data-email="@u.Email.ToLower()">
+                            <td>
+                                <input type="checkbox" class="form-check-input row-check" value="@u.Id" aria-label="Select row" />
+                            </td>
+                            <td>@u.Name</td>
+                            <td>@u.Email</td>
+                            <td><span class="badge @badgeClass">@u.Status</span></td>
+                            <td title="@(u.LastSeenAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? "")">
+                                @(u.LastSeenAt.HasValue ? TimeAgo(u.LastSeenAt.Value) : "N/A")
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string TimeAgo(DateTime dt)
+    {
+        var span = DateTime.UtcNow - dt.ToUniversalTime();
+        if (span.TotalMinutes < 1) return "less than a minute ago";
+        if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes} minutes ago";
+        if (span.TotalHours < 24) return $"{(int)span.TotalHours} hours ago";
+        return $"{(int)span.TotalDays} days ago";
+    }
+}
+
+@section Scripts {
+    <script src="~/js/admin.js"></script>
+}
