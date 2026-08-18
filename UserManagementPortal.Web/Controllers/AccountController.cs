@@ -12,12 +12,12 @@ namespace UserManagementPortal.Controllers;
 public class AccountController : Controller
 {
     private readonly IUserService _userService;
-    private readonly IEmailService _emailService;
+    private readonly IEmailSender _emailSender;
 
-    public AccountController(IUserService userService, IEmailService emailService)
+    public AccountController(IUserService userService, IEmailSender emailSender)
     {
         _userService = userService;
-        _emailService = emailService;
+        _emailSender = emailSender;
     }
 
     [HttpGet]
@@ -37,23 +37,9 @@ public class AccountController : Controller
         {
             var user = result.User!;
             
-            var confirmationLink = Url.Action(
-                "ConfirmEmail", 
-                "Account", 
-                new { userId = user.Id }, 
-                protocol: Request.Scheme);
-
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    await _emailService.SendConfirmationEmailAsync(user.Email, user.Id.ToString(), confirmationLink!);
-                }
-                catch
-                {
-                    // Логирование ошибки отправки, если SMTP недоступен
-                }
-            });
+            var confirmLink = Url.Action("ConfirmEmail", "Account",
+                new { email = dto.Email, token = result.ConfirmationToken }, Request.Scheme)!;
+            _emailSender.QueueConfirmationEmail(dto.Email, confirmLink);
             
             TempData["StatusMessage"] = "Регистрация прошла успешно. Проверьте почту для подтверждения.";
             return RedirectToAction("Login");
@@ -106,7 +92,7 @@ public class AccountController : Controller
         if (Url.IsLocalUrl(returnUrl))
             return Redirect(returnUrl);
 
-        return RedirectToAction("Index", "Users");
+        return RedirectToAction("Admin", "Home");
     }
 
     [HttpPost]
@@ -118,11 +104,12 @@ public class AccountController : Controller
     }
     
     [HttpGet]
-    public async Task<IActionResult> ConfirmEmail(Guid userId)
+    public async Task<IActionResult> ConfirmEmail(string email, Guid token)
     {
-        await _userService.ConfirmEmailAsync(userId);
-
-        TempData["Success"] = "Ваш e-mail успешно подтвержден!";
-        return RedirectToAction("Login");
+        var confirmed = await _userService.ConfirmEmailAsync(email, token);
+        TempData["StatusMessage"] = confirmed
+            ? "Email подтверждён, теперь можно войти."
+            : "Ссылка недействительна.";
+        return RedirectToAction(nameof(Login));
     }
 }
