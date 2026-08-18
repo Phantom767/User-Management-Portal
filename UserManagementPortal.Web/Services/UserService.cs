@@ -30,6 +30,7 @@ public class UserService : IUserService
             CreatedAt = DateTime.UtcNow
         };
 
+        user.EmailConfirmationToken = Guid.NewGuid();
         _db.Users.Add(user);
 
         try
@@ -74,17 +75,18 @@ public class UserService : IUserService
         return LoginResult.Success(user);
     }
 
-    public async Task<IActionResult> ConfirmEmailAsync(Guid userId)
+    public async Task<bool> ConfirmEmailAsync(string email, Guid token, CancellationToken ct = default)
     {
-        var user = await _db.Users.FindAsync(userId);
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email.ToLowerInvariant(), ct);
 
-        if (user != null && user.Status == UserStatus.Unverified)
-        {
+        if (user is null || user.EmailConfirmationToken != token || user.Status == UserStatus.Blocked)
+            return false;
+
+        if (user.Status == UserStatus.Unverified)
             user.Status = UserStatus.Active;
-            await _db.SaveChangesAsync();
-        }
 
-        return new RedirectToActionResult("Login", "Account", null);
+        await _db.SaveChangesAsync(ct);
+        return true;
     }
 
     public Task<User?> GetByIdAsync(int id, CancellationToken ct = default) =>
