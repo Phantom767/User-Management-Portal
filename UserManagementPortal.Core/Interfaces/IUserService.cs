@@ -10,5 +10,5 @@ public interface IUserService
     Task<RegisterResult> RegisterAsync(RegisterUserDto dto, CancellationToken ct = default);
     Task<LoginResult> LoginAsync(LoginDto dto, CancellationToken ct = default);
     Task<User?> GetByIdAsync(int id, CancellationToken ct = default);
-    Task<IActionResult> ConfirmEmailAsync(Guid userId);
+    Task<bool> ConfirmEmailAsync(string email, Guid token, CancellationToken ct = default);
 }
