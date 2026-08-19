@@ -1,4 +1,6 @@
 ﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UserManagementPortal.Core.Common;
@@ -48,8 +50,18 @@ public class AdminController : Controller
         if (dto?.Ids is null || dto.Ids.Count == 0)
             return BadRequest(new { success = false, message = "Не выбрано ни одного пользователя." });
 
-        var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+        if (!Guid.TryParse(userIdStr, out var currentUserId))
+        {
+            return Unauthorized(new { success = false, message = "Сессия недействительна." });
+        }
+
         var result = await action(dto.Ids, currentUserId, ct);
+
+        if (result.AffectedCurrentUser)
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        }
 
         return Json(new
         {

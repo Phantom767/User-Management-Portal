@@ -17,16 +17,20 @@ public class AdminService : IAdminService
         _db.Users
             .AsNoTracking()
             .OrderByDescending(u => u.LastLoginAt ?? u.CreatedAt)
-            .Select(u => new UserListItemDto(u.Id, u.Name, u.Email, u.Status.ToString(), u.LastLoginAt))
+            .Select(u => new UserListItemDto(u.Id, u.Name, u.Email, u.CurrentStatus.ToString(), u.LastLoginAt))
             .ToListAsync(ct);
 
     public async Task<BulkActionResult> BlockUsersAsync(List<Guid> ids, Guid currentUserId, CancellationToken ct = default)
     {
         if (ids.Count == 0) return BulkActionResult.Ok(0);
 
+        await _db.Users
+            .Where(u => ids.Contains(u.Id))
+            .ExecuteUpdateAsync(s => s.SetProperty(u => u.PreviousStatus, u => u.CurrentStatus), ct);
+        
         var affected = await _db.Users
             .Where(u => ids.Contains(u.Id))
-            .ExecuteUpdateAsync(s => s.SetProperty(u => u.Status, UserStatus.Blocked), ct);
+            .ExecuteUpdateAsync(s => s.SetProperty(u => u.CurrentStatus, UserStatus.Blocked), ct);
 
         return BulkActionResult.Ok(affected, ids.Contains(currentUserId));
     }
@@ -37,7 +41,7 @@ public class AdminService : IAdminService
 
         var affected = await _db.Users
             .Where(u => ids.Contains(u.Id))
-            .ExecuteUpdateAsync(s => s.SetProperty(u => u.Status, UserStatus.Active), ct);
+            .ExecuteUpdateAsync(s => s.SetProperty(u => u.CurrentStatus, u => u.PreviousStatus), ct);
 
         return BulkActionResult.Ok(affected);
     }
@@ -58,7 +62,7 @@ public class AdminService : IAdminService
         if (ids.Count == 0) return BulkActionResult.Ok(0);
 
         var toDelete = await _db.Users
-            .Where(u => ids.Contains(u.Id) && u.Status == UserStatus.Unverified)
+            .Where(u => ids.Contains(u.Id) && u.CurrentStatus == UserStatus.Unverified)
             .Select(u => u.Id)
             .ToListAsync(ct);
 

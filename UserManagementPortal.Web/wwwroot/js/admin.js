@@ -7,7 +7,7 @@
     const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
 
     function getSelectedIds() {
-        return rowChecks().filter(c => c.checked).map(c => Number(c.value));
+        return rowChecks().filter(c => c.checked).map(c => c.value);
     }
 
     function refreshToolbarState() {
