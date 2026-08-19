@@ -35,11 +35,17 @@ public class AccountController : Controller
 
         if (result.Outcome == RegisterOutcome.Success)
         {
-            var user = result.User!;
+            var confirmLink = Url.Action(
+                "ConfirmEmail",
+                "Account",
+                new
+                {
+                    email = dto.Email,
+                    token = result.ConfirmationToken
+                },
+                Request.Scheme)!;
             
-            var confirmLink = Url.Action("ConfirmEmail", "Account",
-                new { email = dto.Email, token = result.ConfirmationToken }, Request.Scheme)!;
-            _emailSender.QueueConfirmationEmail(dto.Email, confirmLink);
+            await _emailSender.SendConfirmationEmailAsync(dto.Email, confirmLink);
             
             TempData["StatusMessage"] = "Регистрация прошла успешно. Проверьте почту для подтверждения.";
             return RedirectToAction("Login");
@@ -59,7 +65,7 @@ public class AccountController : Controller
         ViewData["ReturnUrl"] = returnUrl;
         return View();
     }
-
+    
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginDto dto, string? returnUrl = null)
@@ -92,7 +98,7 @@ public class AccountController : Controller
         if (Url.IsLocalUrl(returnUrl))
             return Redirect(returnUrl);
 
-        return RedirectToAction("Admin", "Home");
+        return RedirectToAction("Index", "Admin");
     }
 
     [HttpPost]
