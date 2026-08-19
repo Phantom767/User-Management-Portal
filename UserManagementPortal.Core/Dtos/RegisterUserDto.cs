@@ -1,3 +1,3 @@
 ﻿namespace UserManagementPortal.Core.Dtos;
 
-public record RegisterUserDto(string Name, string Email, string Password);
+public record RegisterUserDto(string Name, string Email, string Password, string ConfirmPassword);
