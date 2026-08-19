@@ -1,0 +1,109 @@
+@model UserManagementPortal.Core.Dtos.RegisterUserDto
+@{
+    ViewData["Title"] = "Sign up";
+    ViewData["HideNav"] = true;
+}
+
+<div class="auth-page">
+    <div class="auth-card">
+        <section class="auth-content">
+            <div class="auth-content-inner">
+                <div class="auth-heading">
+                    <h1>Create Account</h1>
+                    <p>Create your account and start managing your workspace.</p>
+                </div>
+
+                <form asp-action="Register" method="post" class="auth-form" novalidate>
+                    <div asp-validation-summary="ModelOnly"
+                         class="alert alert-danger py-2 small"
+                         role="alert"></div>
+
+                    <div class="auth-field">
+                        <label asp-for="Name">Name</label>
+                        <input asp-for="Name"
+                               class="auth-input"
+                               placeholder="John Doe"
+                               autocomplete="name"
+                               autofocus />
+                        <span asp-validation-for="Name" class="auth-error"></span>
+                    </div>
+
+                    <div class="auth-field">
+                        <label asp-for="Email">Email</label>
+                        <input asp-for="Email"
+                               type="email"
+                               class="auth-input"
+                               placeholder="name@example.com"
+                               autocomplete="email" />
+                        <span asp-validation-for="Email" class="auth-error"></span>
+                    </div>
+
+                    <div class="auth-field">
+                        <label asp-for="Password">Password</label>
+                        <div class="password-wrapper">
+                            <input asp-for="Password"
+                                   type="password"
+                                   class="auth-input"
+                                   placeholder="Enter your password"
+                                   autocomplete="new-password" />
+                            <button type="button"
+                                    class="password-toggle"
+                                    aria-label="Show password"
+                                    onclick="togglePassword(this)">
+                                ◉
+                            </button>
+                        </div>
+                        <span asp-validation-for="Password" class="auth-error"></span>
+                    </div>
+
+                    <div class="auth-field">
+                        <label asp-for="ConfirmPassword">Confirm Password</label>
+                        <div class="password-wrapper">
+                            <input asp-for="ConfirmPassword"
+                                   type="password"
+                                   class="auth-input"
+                                   placeholder="Repeat your password"
+                                   autocomplete="new-password" />
+                            <button type="button"
+                                    class="password-toggle"
+                                    aria-label="Show password"
+                                    onclick="togglePassword(this)">
+                                ◉
+                            </button>
+                        </div>
+                        <span asp-validation-for="ConfirmPassword" class="auth-error"></span>
+                    </div>
+
+                    <button type="submit" class="auth-submit">Create Account</button>
+
+                    <p class="auth-switch">
+                        Already Have An Account?
+                        <a asp-action="Login" class="auth-link">Log In.</a>
+                    </p>
+                </form>
+
+                <div class="auth-footer">
+                    <span>© @DateTime.Now.Year - UserManagementPortal.Web - </span>
+                    <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy Policy</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="auth-promo">
+            <div class="promo-shape promo-shape-one"></div>
+            <div class="promo-shape promo-shape-two"></div>
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function togglePassword(button) {
+            const input = button.closest(".password-wrapper").querySelector("input");
+            input.type = input.type === "password" ? "text" : "password";
+            button.setAttribute("aria-label",
+                input.type === "password" ? "Show password" : "Hide password");
+        }
+    </script>
+}
