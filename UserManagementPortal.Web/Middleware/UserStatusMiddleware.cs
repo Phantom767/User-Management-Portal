@@ -25,7 +25,7 @@ public class UserStatusMiddleware
             {
                 var user = await userService.GetByIdAsync(userId, context.RequestAborted);
 
-                if (user is null || user.Status == UserStatus.Blocked)
+                if (user is null || user.CurrentStatus == UserStatus.Blocked)
                 {
                     await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
                     context.Response.Redirect("/Account/Login");

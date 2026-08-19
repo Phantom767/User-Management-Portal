@@ -26,7 +26,7 @@ public class UserService : IUserService
             Name = dto.Name,
             Email = dto.Email.Trim().ToLowerInvariant(),
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-            Status = UserStatus.Unverified,
+            CurrentStatus = UserStatus.Unverified,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -69,7 +69,7 @@ public class UserService : IUserService
         if (user is null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
             return LoginResult.Fail(LoginOutcome.InvalidCredentials, "Неверный email или пароль.");
 
-        if (user.Status == UserStatus.Blocked)
+        if (user.CurrentStatus == UserStatus.Blocked)
             return LoginResult.Fail(LoginOutcome.Blocked, "Аккаунт заблокирован.");
 
         return LoginResult.Success(user);
@@ -79,11 +79,11 @@ public class UserService : IUserService
     {
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email.ToLowerInvariant(), ct);
 
-        if (user is null || user.EmailConfirmationToken != token || user.Status == UserStatus.Blocked)
+        if (user is null || user.EmailConfirmationToken != token || user.CurrentStatus == UserStatus.Blocked)
             return false;
 
-        if (user.Status == UserStatus.Unverified)
-            user.Status = UserStatus.Active;
+        if (user.CurrentStatus == UserStatus.Unverified)
+            user.CurrentStatus = UserStatus.Active;
 
         await _db.SaveChangesAsync(ct);
         return true;
