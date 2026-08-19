@@ -1,7 +1,118 @@
 ﻿@model UserManagementPortal.Core.Dtos.LoginDto
-<form asp-action="Login" method="post">
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-    <input asp-for="Email" type="email" />
-    <input asp-for="Password" type="password" />
-    <button type="submit">Sign In</button>
-</form>
+@{
+    ViewData["Title"] = "Sign in";
+    ViewData["HideNav"] = true;
+}
+
+<div class="auth-page">
+    <div class="auth-card">
+        <section class="auth-content">
+            <div class="auth-content-inner">
+                <div class="auth-heading">
+                    <h1>Welcome Back</h1>
+                    <p>Enter your email and password to access your account.</p>
+                </div>
+
+                @if (TempData["StatusMessage"] is string status)
+                {
+                    <div class="alert alert-success py-2 small" role="alert">
+                        @status
+                    </div>
+                }
+
+                <form asp-action="Login"
+                      asp-route-returnUrl="@ViewData["ReturnUrl"]"
+                      method="post"
+                      class="auth-form"
+                      novalidate>
+
+                    <div asp-validation-summary="ModelOnly"
+                         class="alert alert-danger py-2 small"
+                         role="alert"></div>
+
+                    <div class="auth-field">
+                        <label asp-for="Email">Email</label>
+                        <input asp-for="Email"
+                               type="email"
+                               class="auth-input"
+                               placeholder="sellostore@company.com"
+                               autocomplete="email"
+                               autofocus />
+                        <span asp-validation-for="Email" class="auth-error"></span>
+                    </div>
+
+                    <div class="auth-field">
+                        <label asp-for="Password">Password</label>
+                        <div class="password-wrapper">
+                            <input asp-for="Password"
+                                   type="password"
+                                   class="auth-input"
+                                   placeholder="Enter your password"
+                                   autocomplete="current-password" />
+                            <button type="button"
+                                    class="password-toggle"
+                                    aria-label="Show password"
+                                    onclick="togglePassword(this)">
+                                ◉
+                            </button>
+                        </div>
+                        <span asp-validation-for="Password" class="auth-error"></span>
+                    </div>
+
+                    <div class="auth-options">
+                        <label class="remember-option">
+                            <input type="checkbox" id="rememberMe" />
+                            <span>Remember Me</span>
+                        </label>
+
+                        <a href="#" class="auth-link">Forgot Your Password?</a>
+                    </div>
+
+                    <button type="submit" class="auth-submit">Log In</button>
+
+                    <div class="auth-divider">
+                        <span>Or Login With</span>
+                    </div>
+
+                    <div class="social-buttons">
+                        <button type="button" class="social-button">
+                            <span class="social-icon google-icon">G</span>
+                            Google
+                        </button>
+                        <button type="button" class="social-button">
+                            <span class="social-icon apple-icon">●</span>
+                            Apple
+                        </button>
+                    </div>
+
+                    <p class="auth-switch">
+                        Don't Have An Account?
+                        <a asp-action="Register" asp-controller="Account" class="auth-link">Register Now.</a>
+                    </p>
+                </form>
+
+                <div class="auth-footer">
+                    <span>© @DateTime.Now.Year - UserManagementPortal.Web - </span>
+                    <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy Policy</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="auth-promo">
+            <div class="promo-shape promo-shape-one"></div>
+            <div class="promo-shape promo-shape-two"></div>
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function togglePassword(button) {
+            const input = button.closest(".password-wrapper").querySelector("input");
+            input.type = input.type === "password" ? "text" : "password";
+            button.setAttribute("aria-label",
+                input.type === "password" ? "Show password" : "Hide password");
+        }
+    </script>
+}
