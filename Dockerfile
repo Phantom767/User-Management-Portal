@@ -3,8 +3,6 @@ WORKDIR /src
 
 COPY ["UserManagementPortal.Web/UserManagementPortal.Web.csproj", "UserManagementPortal.Web/"]
 COPY ["UserManagementPortal.Core/UserManagementPortal.Core.csproj", "UserManagementPortal.Core/"]
-COPY ["UserManagementPortal.Persistence/UserManagementPortal.Persistence.csproj", "UserManagementPortal.Persistence/"]
-COPY ["UserManagementPortal.Services/UserManagementPortal.Services.csproj", "UserManagementPortal.Services/"]
 RUN dotnet restore "UserManagementPortal.Web/UserManagementPortal.Web.csproj"
 
 COPY . .
