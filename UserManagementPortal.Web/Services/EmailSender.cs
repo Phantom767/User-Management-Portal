@@ -31,7 +31,7 @@ public class EmailSender(IOptions<EmailSettings> emailSettings, IWebHostEnvironm
         {
             try
             {
-                await client.ConnectAsync(_emailSettings.SmtpServer, _emailSettings.Port, SecureSocketOptions.Auto);
+                await client.ConnectAsync(_emailSettings.SmtpServer, _emailSettings.Port, SecureSocketOptions.SslOnConnect);
                     
                 await client.AuthenticateAsync(_emailSettings.SenderEmail, _emailSettings.Password);
                     
