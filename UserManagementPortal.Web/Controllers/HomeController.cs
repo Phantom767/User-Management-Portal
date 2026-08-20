@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using UserManagementPortal.Models;
 
 namespace UserManagementPortal.Controllers;
 
