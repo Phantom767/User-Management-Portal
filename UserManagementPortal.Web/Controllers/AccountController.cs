@@ -13,11 +13,13 @@ public class AccountController : Controller
 {
     private readonly IUserService _userService;
     private readonly IEmailSender _emailSender;
+    private readonly ILogger<AccountController> _logger;
 
-    public AccountController(IUserService userService, IEmailSender emailSender)
+    public AccountController(IUserService userService, IEmailSender emailSender, ILogger<AccountController> logger)
     {
         _userService = userService;
         _emailSender = emailSender;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -45,7 +47,15 @@ public class AccountController : Controller
                 },
                 Request.Scheme)!;
             
-            await _emailSender.SendConfirmationEmailAsync(dto.Email, confirmLink);
+            try{
+                await _emailSender.SendConfirmationEmailAsync(dto.Email, confirmLink);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ошибка при отправке письма для {Email}", dto.Email);
+                TempData["StatusMessage"] = "Регистрация прошла успешно, но не удалось отправить письмо с подтверждением. Пожалуйста, свяжитесь с поддержкой.";
+                return RedirectToAction("Login");
+            }
             
             TempData["StatusMessage"] = "Регистрация прошла успешно. Проверьте почту для подтверждения.";
             return RedirectToAction("Login");
