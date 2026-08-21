@@ -1,51 +1,43 @@
-﻿using MailKit.Net.Smtp;
-using MailKit.Security;
+﻿using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.Options;
-using MimeKit;
 using UserManagementPortal.Core.Interfaces;
 using UserManagementPortal.Core.Models;
 
 namespace UserManagementPortal.Services;
 
-public class EmailSender(IOptions<EmailSettings> emailSettings, IWebHostEnvironment environment) : IEmailSender
+public class EmailSender(IOptions<EmailSettings> emailSettings, IWebHostEnvironment environment, IConfiguration config, HttpClient httpClient) : IEmailSender
 {
     private readonly EmailSettings _emailSettings = emailSettings.Value;
 
     public async Task SendEmailAsync(string email, string subject, string htmlMessage)
     {
-        if (string.IsNullOrWhiteSpace(_emailSettings.SmtpServer))
-        {
-            throw new InvalidOperationException("Настройки SMTP не заданы. Проверьте секцию 'EmailSettings' в appsettings.json.");
-        }
+        var apiKey = config[_emailSettings.ApiKey]; 
         
-        var emailMessage = new MimeMessage();
+        var requestMessage = new HttpRequestMessage(HttpMethod.Post, "https://api.resend.com/emails");
+        requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 
-        emailMessage.From.Add(new MailboxAddress(_emailSettings.SenderName, _emailSettings.SenderEmail));
-        emailMessage.To.Add(new MailboxAddress("", email));
-        emailMessage.Subject = subject;
-
-        var bodyBuilder = new BodyBuilder { HtmlBody = htmlMessage };
-        emailMessage.Body = bodyBuilder.ToMessageBody();
-
-        using (var client = new SmtpClient())
+        var payload = new
         {
-            try
-            {
-                await client.ConnectAsync(_emailSettings.SmtpServer, _emailSettings.Port, SecureSocketOptions.SslOnConnect);
-                    
-                await client.AuthenticateAsync(_emailSettings.SenderEmail, _emailSettings.Password);
-                    
-                await client.SendAsync(emailMessage);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Ошибка отправки письма: {ex.Message}");
-                throw; 
-            }
-            finally
-            {
-                await client.DisconnectAsync(true);
-            }
+            from = "UserPortal <onboarding@resend.dev>",
+            to = new[] { email },
+            subject = subject,
+            html = htmlMessage
+        };
+
+        requestMessage.Content = new StringContent(
+            JsonSerializer.Serialize(payload), 
+            Encoding.UTF8, 
+            "application/json"
+        );
+
+        var response = await httpClient.SendAsync(requestMessage);
+        
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Ошибка отправки через Resend API: {error}");
         }
     }
     
