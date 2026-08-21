@@ -20,7 +20,7 @@ public class EmailSender(IOptions<EmailSettings> emailSettings, IWebHostEnvironm
 
         var payload = new
         {
-            from = "UserPortal <onboarding@resend.dev>",
+            from = _emailSettings.SenderEmail,
             to = new[] { email },
             subject = subject,
             html = htmlMessage
