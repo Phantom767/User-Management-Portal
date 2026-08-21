@@ -7,12 +7,15 @@ using UserManagementPortal.Core.Models;
 
 namespace UserManagementPortal.Services;
 
-public class EmailSender(IOptions<EmailSettings> emailSettings, IWebHostEnvironment environment, IConfiguration config, HttpClient httpClient) : IEmailSender
+public class EmailSender(IOptions<EmailSettings> emailSettings, IWebHostEnvironment environment, IConfiguration config, IHttpClientFactory httpClientFactory) : IEmailSender
 {
     private readonly EmailSettings _emailSettings = emailSettings.Value;
+    private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
 
     public async Task SendEmailAsync(string email, string subject, string htmlMessage)
     {
+        var client = _httpClientFactory.CreateClient();
+        
         var apiKey = config[_emailSettings.ApiKey]; 
         
         var requestMessage = new HttpRequestMessage(HttpMethod.Post, "https://api.resend.com/emails");
@@ -32,7 +35,7 @@ public class EmailSender(IOptions<EmailSettings> emailSettings, IWebHostEnvironm
             "application/json"
         );
 
-        var response = await httpClient.SendAsync(requestMessage);
+        var response = await client.SendAsync(requestMessage);
         
         if (!response.IsSuccessStatusCode)
         {
