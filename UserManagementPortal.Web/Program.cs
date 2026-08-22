@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using Resend;
 using UserManagementPortal.Core.Interfaces;
 using UserManagementPortal.Core.Models;
 using UserManagementPortal.Middleware;
@@ -27,6 +28,11 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 builder.Services.AddHttpClient();
+var resendApiKey = builder.Configuration["EmailSettings:ApiKey"] ?? "";
+builder.Services.AddResend(options =>
+{
+    options.ApiToken = resendApiKey;
+});
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 
@@ -43,7 +49,6 @@ using (var scope = app.Services.CreateScope())
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
     app.UseSwagger();
     app.UseSwaggerUI();
